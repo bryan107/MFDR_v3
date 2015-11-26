@@ -27,7 +27,6 @@ import mfdr.file.FileAccessAgent;
 import experiment.utility.DataParser_BAK;
 import experiment.utility.UCRParser;
 import experiment.utility.UCRParser2015;
-import experiment.utility.UCRParserOld;
 import experiment.utility.UCRData;
 import flanagan.analysis.Stat;
 

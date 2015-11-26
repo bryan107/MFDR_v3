@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import experiment.core.NoiseMFDRCore;
 import experiment.core.RepresentationErrorExpCorewithNewMFDR;
 import experiment.utility.DataParser_BAK;
-import experiment.utility.UCRParserOld;
 import mfdr.core.MFDRWaveParameterFacade;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.reduction.*;

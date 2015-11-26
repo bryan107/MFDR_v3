@@ -39,10 +39,18 @@ public interface UCRParser {
 //	public LinkedList<TimeSeries> getTimeSeriesList();
 	
 	/**
+	 * Read the file names from a list file.
+	 * @param fagent
+	 * @param filelistaddress
+	 * @return LinkedList<String>
+	 */
+	public LinkedList<String> getFileNameList(FileAccessAgent fagent,String filelistaddress);
+	
+	/**
 	 * Return a LinkedList <TimeSeries>
 	 * When null, return null
 	 * @param fagent
-	 * @return LinkedList<UCRData>
+	 * @return LinkedList<TimeSeries>
 	 */
 	public LinkedList<TimeSeries> getTimeSeriesList();
 
@@ -50,9 +58,38 @@ public interface UCRParser {
 	 * Return a LinkedList <TimeSeries>
 	 * When null, return null
 	 * @param fagent
-	 * @return LinkedList<UCRData>
+	 * @return LinkedList<TimeSeries>
 	 */
 	public LinkedList<TimeSeries> getTimeSeriesList(String address,String filename, String arg);
+	
+	/**
+	 * Return Return a LinkedList <TimeSeries> from UCR Test files. The file name dose not have to include "TEST"
+	 * @param fagent
+	 * @param address
+	 * @param filename
+	 * @return LinkedList<TimeSeries>
+	 */
+	public LinkedList<TimeSeries> getTimeSeriesListTest(FileAccessAgent fagent ,String address, String filename);
+	
+	/**
+	 * Return Return a LinkedList <TimeSeries> from UCR Train files. The file name dose not have to include "TRAIN"
+	 * @param fagent
+	 * @param address
+	 * @param filename
+	 * @return LinkedList<TimeSeries>
+	 */
+	public LinkedList<TimeSeries> getTimeSeriesListTrain(FileAccessAgent fagent ,String address,String filename);
+	
+	/**
+	 * Return Return a LinkedList <TimeSeries> from both UCR Test and Train files. 
+	 * The file name dose not have to include "TRAIN" or "TEST"
+	 * @param fagent
+	 * @param address
+	 * @param filename
+	 * @return LinkedList<TimeSeries>
+	 */
+	public LinkedList<TimeSeries> getTimeSeriesListALL(FileAccessAgent fagent ,String address,String filename);
+	
 	
 	/**
 	 * Return a LinkedList <UCRData>
@@ -60,6 +97,7 @@ public interface UCRParser {
 	 * @param fagent
 	 * @return LinkedList<UCRData>
 	 */
+	
 	public LinkedList<UCRData> getUCRDataList();
 	
 	/**

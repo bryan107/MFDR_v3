@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import experiment.utility.DataParser_BAK;
 import experiment.utility.UCRParser;
 import experiment.utility.UCRParser2015;
-import experiment.utility.UCRParserOld;
 import flanagan.analysis.Stat;
 import mfdr.core.MFDRParameterFacade;
 import mfdr.core.MFDRParameters;

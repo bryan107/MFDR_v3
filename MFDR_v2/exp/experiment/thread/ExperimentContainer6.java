@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 import experiment.core.ClosenessOfDistanceCoreWithNewMFDR;
 import experiment.core.NoiseMFDRCore;
 import experiment.utility.DataParser_BAK;
-import experiment.utility.UCRParserOld;
 import mfdr.core.MFDRWaveParameterFacade;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.reduction.*;

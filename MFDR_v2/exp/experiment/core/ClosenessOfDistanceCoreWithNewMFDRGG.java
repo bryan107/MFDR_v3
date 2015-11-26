@@ -26,7 +26,6 @@ import mfdr.utility.DataListOperator;
 import experiment.utility.DataParser_BAK;
 import experiment.utility.UCRParser;
 import experiment.utility.UCRParser2015;
-import experiment.utility.UCRParserOld;
 import flanagan.analysis.Stat;
 
 public class ClosenessOfDistanceCoreWithNewMFDRGG {

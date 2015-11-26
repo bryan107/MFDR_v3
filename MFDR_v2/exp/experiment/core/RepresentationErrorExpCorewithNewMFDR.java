@@ -1,15 +1,12 @@
 package experiment.core;
 
-import java.sql.Timestamp;
 import java.util.LinkedList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import experiment.utility.DataParser_BAK;
 import experiment.utility.UCRParser;
 import experiment.utility.UCRParser2015;
-import experiment.utility.UCRParserOld;
 import flanagan.analysis.Stat;
 import mfdr.core.MFDRParameterFacade;
 import mfdr.core.MFDRParameters;
@@ -18,7 +15,6 @@ import mfdr.dimensionality.reduction.DFT;
 import mfdr.dimensionality.reduction.DFTWave;
 import mfdr.dimensionality.reduction.DimensionalityReduction;
 import mfdr.dimensionality.reduction.MFDR;
-import mfdr.dimensionality.reduction.MFDRWave;
 import mfdr.dimensionality.reduction.PAA;
 import mfdr.dimensionality.reduction.PLA;
 import mfdr.file.FileAccessAgent;
