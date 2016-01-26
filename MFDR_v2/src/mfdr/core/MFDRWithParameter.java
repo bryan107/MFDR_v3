@@ -1,15 +1,10 @@
 package mfdr.core;
 
-import java.nio.channels.NoConnectionPendingException;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import flanagan.analysis.Stat;
-import flanagan.control.LowPassPassive;
-import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.MFDRObject;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
@@ -25,12 +20,9 @@ import mfdr.math.emd.EMD;
 import mfdr.math.emd.datastructure.IMFS;
 import mfdr.math.emd.utility.DataListCalculator;
 
-public class MFDRParameterFacade {
-	private static Log logger = LogFactory.getLog(MFDRParameterFacade.class);
-	// private MFDR mfdr;
+public class MFDRWithParameter {
+	private static Log logger = LogFactory.getLog(MFDRWithParameter.class);
 	// ****** Post processing flags ******
-	// private boolean windowsizetrain = false;
-	// private boolean parametertrain = false;
 
 	// ***********************************
 	// ********** EMD Parameters *********
@@ -46,14 +38,6 @@ public class MFDRParameterFacade {
 	// Trend Filter
 	private MFDRNoCCalculator NoCcalculator;
 
-	// ************************************
-	// ********* Learning Objects *********
-	// private WindowSize windowsize;
-	// private AngleLearning alearn;
-	// private VarienceLearning vlearn;
-
-	// ************************************
-
 	/**
 	 * This constructor provides the old function with k 1-motif solution
 	 * @param white_noise_level
@@ -63,7 +47,7 @@ public class MFDRParameterFacade {
 	 * @param motif_k
 	 * @param motif_threshold
 	 */
-	public MFDRParameterFacade(double white_noise_level,
+	public MFDRWithParameter(double white_noise_level,
 			double white_noise_threshold, double min_NSratio) {
 		// this.mfdr = new MFDR();
 		updateWhiteNoiseFilter(white_noise_level, white_noise_threshold,
@@ -78,7 +62,7 @@ public class MFDRParameterFacade {
 	 * @param min_NSratio
 	 * @param dist
 	 */
-	public MFDRParameterFacade(double white_noise_level,
+	public MFDRWithParameter(double white_noise_level,
 			double white_noise_threshold, double min_NSratio, Distance dist) {
 		// this.mfdr = new MFDR();
 		updateWhiteNoiseFilter(white_noise_level, white_noise_threshold,
@@ -93,68 +77,12 @@ public class MFDRParameterFacade {
 	}
 
 	/**
-	 * Learn NoC Parameters from input TimeSeries<LinkedList>
-	 * 
-	 * @param ts
-	 * @return WindowSize
-	 */
-	public MFDRParameters learnMFDRParameters(LinkedList<TimeSeries> ts, int NoC, boolean use_IMF_tfilter) {
-		int[] NoC_t_array = new int[ts.size()];
-		int[] NoC_s_array = new int[ts.size()];
-		double[] lowestperiod_array = new double[ts.size()];
-		MFDRParameters parameters;
-		// Learn Window sizes of with the training data set
-		for (int i = 0; i < ts.size(); i++) {
-			parameters = learnMFDRParameters(ts.get(i), NoC, use_IMF_tfilter);
-			NoC_t_array[i] = parameters.trendNoC();
-			NoC_s_array[i] = parameters.seasonalNoC();
-			lowestperiod_array[i] = parameters.lowestPeriod();
-		}
-		// Take the medians as final results
-		int NoC_t = (int) Stat.median(NoC_t_array);
-		int NoC_s = (int) Stat.median(NoC_s_array);
-		double lowestperiod = Stat.median(lowestperiod_array);
-		// Adjust window sizes to fit the sampling rate of input time series.
-		lowestperiod = (int) (lowestperiod / ts.peek().timeInterval())
-				* ts.peek().timeInterval();
-		return new MFDRParameters(NoC_t, NoC_s, lowestperiod);
-	}
-
-	/**
-	 * Learn NoC Parameters from input TimeSeries <Array>
-	 * 
-	 * @param ts
-	 * @return
-	 */
-	public MFDRParameters learnMFDRParameters(TimeSeries[] ts, int NoC, boolean use_IMF_tfilter) {
-		int[] NoC_t_array = new int[ts.length];
-		int[] NoC_s_array = new int[ts.length];
-		double[] lowestperiod_array = new double[ts.length];
-		MFDRParameters parameters;
-		// Learn Window sizes of with the training data set
-		for (int i = 0; i < ts.length; i++) {
-			parameters = learnMFDRParameters(ts[i], NoC, use_IMF_tfilter);
-			NoC_t_array[i] = parameters.trendNoC();
-			NoC_s_array[i] = parameters.seasonalNoC();
-			lowestperiod_array[i] = parameters.lowestPeriod();
-		}
-		// Take the medians as final results
-		int NoC_t = (int) Stat.median(NoC_t_array);
-		int NoC_s = (int) Stat.median(NoC_s_array);
-		double lowestperiod = Stat.median(lowestperiod_array);
-		// Adjust window sizes to fit the sampling rate of input time series.
-		lowestperiod = (int) (lowestperiod / ts[0].timeInterval())
-				* ts[0].timeInterval();
-		return new MFDRParameters(NoC_t, NoC_s, lowestperiod);
-	}
-
-	/**
 	 * This function learns the window sizes from a time series
 	 * the condition use_white_noise_filter defines whether to filter out white noise components.
 	 * @param ts, NoC, use_white_noise_filter
 	 * @return
 	 */
-	public MFDRParameters learnMFDRParameters(TimeSeries ts, int NoC, boolean use_white_noise_filter) {
+	public MFDRObject getBruteForceResult(TimeSeries ts, int NoC, boolean use_white_noise_filter) {
 		MFDRObject result;
 		// STEP 2: AYALYZE IMFs
 		double lowestperiod = 0;
@@ -170,14 +98,12 @@ public class MFDRParameterFacade {
 		} else{
 			result = NoCcalculator.getBruteForceMFDRNoCs(ts, NoC, lowestperiod);
 		}
-		int NoC_t = result.NoC_t();
-		int NoC_s = NoC - NoC_t;
-		// STEP 3: Set training result;
-		return new MFDRParameters(NoC_t, NoC_s, lowestperiod);
+
+		return result;
 	}
 	
 	
-	public MFDRParameters learnMFDRParametersWithBooster(TimeSeries ts, int NoC, boolean use_white_noise_filter, boolean use_booster) {
+	public MFDRObject getResult(TimeSeries ts, int NoC, boolean use_white_noise_filter, boolean use_booster) {
 		MFDRObject result;
 		// STEP 2: AYALYZE IMFs
 		double lowestperiod = 0;
@@ -206,10 +132,7 @@ public class MFDRParameterFacade {
 				result = NoCcalculator.getBruteForceMFDRNoCs(ts, NoC, lowestperiod);
 			}
 		}
-		int NoC_t = result.NoC_t();
-		int NoC_s = NoC - NoC_t;
-		// STEP 3: Set training result;
-		return new MFDRParameters(NoC_t, NoC_s, lowestperiod);
+		return result;
 	}
 	
 
