@@ -304,7 +304,7 @@ public class MFDR extends DimensionalityReduction {
 		logger.info("Cross Error:" + cross_distance);
 		return Math.sqrt(Math.pow(trend_distance, 2) + Math.pow(seasonal_distance, 2) + cross_distance);
 	}
-
+	
 	public double getCrossBruteForceDistance(MFDRWaveData mfdrdata1,
 			MFDRWaveData mfdrdata2, TimeSeries ts1, Distance distance) {
 		MFDRDistanceDetails dist_details = getDistanceDetails(mfdrdata1,
