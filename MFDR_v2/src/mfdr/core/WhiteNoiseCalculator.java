@@ -20,9 +20,9 @@ import mfdr.math.statistic.StatisticalProperty;
  * noise; otherwise, regarded as a signal
  **/
 
-public class WhiteNoiseFilter {
+public class WhiteNoiseCalculator {
 	// Logger
-	private static Log logger = LogFactory.getLog(WhiteNoiseFilter.class);
+	private static Log logger = LogFactory.getLog(WhiteNoiseCalculator.class);
 	/*
 	 * white_noise_level: Defines the level of tolerance standard deviation e.g.
 	 * 5 -> p-value 0.01 white_noise_threshold: Defines the minimum frequency of
@@ -32,7 +32,7 @@ public class WhiteNoiseFilter {
 	private double white_noise_level, white_noise_threshold, min_NSratio;
 	private TimeSeries original_time_series;
 
-	public WhiteNoiseFilter(double white_noise_level,
+	public WhiteNoiseCalculator(double white_noise_level,
 			double white_noise_threshold, double min_NTratio) {
 		setWhiteNoiseLevel(white_noise_level);
 		setWhiteNoiseThreshold(white_noise_threshold);

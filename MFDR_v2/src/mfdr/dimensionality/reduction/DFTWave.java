@@ -24,7 +24,7 @@ public class DFTWave extends DimensionalityReduction {
 	
 	@Override
 	public String name() {
-		return "DFT";
+		return "DFT_Wave";
 	}
 
 	@Override

@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import mfdr.core.LearningResults;
+import mfdr.core.back.LearningResults;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;

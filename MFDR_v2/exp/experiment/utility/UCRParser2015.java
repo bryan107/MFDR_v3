@@ -89,7 +89,7 @@ public class UCRParser2015 implements UCRParser {
 		// Iterate through test data
 		while (true) {
 			UCRData temp = getUCRData();
-			if (temp == null)
+			if (temp.timeSeries() == null)
 				break;
 			list.add(temp);
 		}
@@ -105,6 +105,21 @@ public class UCRParser2015 implements UCRParser {
 		if (!checkFileNameCorrectness(arg))
 			return null;
 		return getUCRDataList();
+	}
+	
+	/**
+	 * Return both TRAIN and TEST data with UCRData structure
+	 * @param address
+	 * @param filename
+	 * @return LinkedList<UCRData>
+	 */
+	public LinkedList<UCRData> getUCRDataListALL(String address, String filename) {
+		LinkedList<UCRData> list = new LinkedList<UCRData>();
+		fagent.updatereadingpath(address + filename + "\\" + filename + "_TRAIN");
+		list = getUCRDataList();
+		fagent.updatereadingpath(address + filename + "\\" + filename + "_TEST");
+		list.addAll(getUCRDataList());
+		return list;
 	}
 
 	@Override

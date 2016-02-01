@@ -1,4 +1,4 @@
-package mfdr.core;
+package mfdr.core.back;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 
 import flanagan.analysis.Stat;
 import flanagan.control.LowPassPassive;
+import mfdr.core.WhiteNoiseCalculator;
 import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.reduction.MFDRWave;
@@ -36,7 +37,7 @@ public class MFDRParameterFacade_BAK {
 	private final int MAXLEVEL = 10;
 
 	// White Noise Filter
-	private WhiteNoiseFilter wfilter;
+	private WhiteNoiseCalculator wfilter;
 
 	// Trend Filter
 	private TrendFilterForMFDRWave tfilter;
@@ -85,7 +86,7 @@ public class MFDRParameterFacade_BAK {
 	
 	public void updateWhiteNoiseFilter(double white_noise_level,
 			double white_noise_threshold, double min_NSratio) {
-		wfilter = new WhiteNoiseFilter(white_noise_level,
+		wfilter = new WhiteNoiseCalculator(white_noise_level,
 				white_noise_threshold, min_NSratio);
 	}
 

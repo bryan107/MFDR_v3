@@ -1,12 +1,12 @@
-package mfdr.core;
+package mfdr.core.back;
 
 import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import mfdr.core.MFDRObject;
 import mfdr.datastructure.TimeSeries;
-import mfdr.dimensionality.datastructure.MFDRObject;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
 import mfdr.dimensionality.reduction.DFT;
 import mfdr.dimensionality.reduction.DFTForMFDR;
@@ -23,13 +23,13 @@ import mfdr.math.emd.utility.DataListCalculator;
  * intense signal; otherwise trend intense.
  **/
 
-public class MFDRNoCCalculator {
+public class BAKNoCCalculator {
 	/**
 	 * Use this constructor for old K 1-motif solution
 	 */
-	private static Log logger = LogFactory.getLog(MFDRNoCCalculator.class);
+	private static Log logger = LogFactory.getLog(BAKNoCCalculator.class);
 
-	public MFDRNoCCalculator() {
+	public BAKNoCCalculator() {
 
 	}
 	
@@ -59,7 +59,7 @@ public class MFDRNoCCalculator {
 		}
 		mfdr.updateParameters(candidateNoCs[0], candidateNoCs[1]);
 		MFDRWaveData data = mfdr.getDR(ts,lowestperiod);
-		return new MFDRObject(candidateNoCs[0], candidateNoCs[1], lowestperiod, data, candidateError);
+		return new MFDRObject(candidateNoCs[0], candidateNoCs[1], lowestperiod, data, candidateError,0);
 	}
 	
 	
@@ -84,7 +84,7 @@ public class MFDRNoCCalculator {
 			MFDRWaveData mid_data = mfdr.getDR(ts,lowestperiod);
 			double mid_err = DataListCalculator.getInstance()
 					.getDifference(ts, mfdr.getFullResolutionDR(ts,lowestperiod)).energyDensity();
-			MFDRObject mid = new MFDRObject(mid_NoC_t, NoC - mid_NoC_t, lowestperiod, mid_data, mid_err);
+			MFDRObject mid = new MFDRObject(mid_NoC_t, NoC - mid_NoC_t, lowestperiod, mid_data, mid_err,0);
 			// Recursive operation
 			if(left.error() < right.error()){
 				return getOptimalMFDRNoCs(left, mid,ts,NoC,lowestperiod);

@@ -2,8 +2,8 @@ package experiment.core;
 
 import java.util.LinkedList;
 
-import mfdr.core.MFDRWaveParameterFacade;
-import mfdr.core.MFDRParameters;
+import mfdr.core.back.MFDRParameters;
+import mfdr.core.back.MFDRWaveParameterFacade;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
 import mfdr.dimensionality.reduction.DFTWave;

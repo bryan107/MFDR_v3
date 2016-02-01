@@ -2,9 +2,9 @@ package experiment.test;
 
 import java.util.LinkedList;
 
-import mfdr.core.MFDRParameterFacade;
-import mfdr.core.MFDRParameters;
-import mfdr.core.MFDRWaveParameterFacade;
+import mfdr.core.back.BAKMFDRParameterFacade;
+import mfdr.core.back.MFDRParameters;
+import mfdr.core.back.MFDRWaveParameterFacade;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.reduction.MFDRLCM;

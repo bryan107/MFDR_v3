@@ -1,24 +1,9 @@
 package mfdr.core;
-
-import java.util.LinkedList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import mfdr.datastructure.TimeSeries;
-import mfdr.dimensionality.datastructure.MFDRObject;
-import mfdr.dimensionality.datastructure.MFDRWaveData;
-import mfdr.dimensionality.reduction.MFDR;
-import mfdr.dimensionality.reduction.MFDRWave;
-import mfdr.distance.Distance;
-import mfdr.learning.LinearLearning;
-import mfdr.learning.LR4DLearning;
-import mfdr.learning.LinearLearningResults;
-import mfdr.learning.VarienceLearning;
-import mfdr.learning.datastructure.TrainingSet;
 import mfdr.math.emd.EMD;
 import mfdr.math.emd.datastructure.IMFS;
-import mfdr.math.emd.utility.DataListCalculator;
 
 public class MFDRWithParameter {
 	private static Log logger = LogFactory.getLog(MFDRWithParameter.class);
@@ -33,149 +18,109 @@ public class MFDRWithParameter {
 	private final int MAXLEVEL = 10;
 
 	// White Noise Filter
-	private WhiteNoiseFilter wfilter;
+	private WhiteNoiseCalculator wfilter;
 
 	// Trend Filter
-	private MFDRNoCCalculator NoCcalculator;
+	private NoCCalculator NoCcalculator;
 
 	/**
-	 * This constructor provides the old function with k 1-motif solution
-	 * @param white_noise_level
-	 * @param white_noise_threshold
-	 * @param min_NSratio
-	 * @param FTratio
-	 * @param motif_k
-	 * @param motif_threshold
+	 * The default constructor for MFDR + default Heuristic NoC Calculator.
 	 */
-	public MFDRWithParameter(double white_noise_level,
-			double white_noise_threshold, double min_NSratio) {
-		// this.mfdr = new MFDR();
-		updateWhiteNoiseFilter(white_noise_level, white_noise_threshold,
-				min_NSratio);
-		this.NoCcalculator = new MFDRNoCCalculator();
+	public MFDRWithParameter() {
+		updateNullWhiteNoiseFilter();
+		updateNoCCalculator(new HeuristicNoCCalculator());
 	}
 	
 	/**
-	 * This is the new solution with only dist input
+	 * The constructor for MFDR + user defined NoC Calculator.
+	 * @param cal
+	 */
+	public MFDRWithParameter(NoCCalculator cal) {
+		updateNullWhiteNoiseFilter();
+		updateNoCCalculator(cal);
+	}
+	
+	/**
+	 * The constructor for MFDR-N + default Heuristic NoC Calculator.
+	 * @param wn_level
+	 * @param wn_threshold
+	 * @param wn_NSratio
+	 */
+	public MFDRWithParameter(double wn_level, double wn_threshold, double wn_NSratio) {
+		updateWhiteNoiseFilter(wn_level, wn_threshold,	wn_NSratio);
+		updateNoCCalculator(new HeuristicNoCCalculator());
+	}
+	
+	/**
+	 * The constructor for MFDR-N + user defined NoC Calculator.
+	 * @param wn_level
+	 * @param wn_threshold
+	 * @param wn_NSratio
+	 * @param cal
+	 */
+	public MFDRWithParameter(double wn_level, double wn_threshold, double wn_NSratio, NoCCalculator cal) {
+		updateWhiteNoiseFilter(wn_level, wn_threshold,	wn_NSratio);
+		updateNoCCalculator(cal);
+	}
+	
+
+	/**
+	 * This function updates the parameter settings of white noise filter.
+	 * 
 	 * @param white_noise_level
 	 * @param white_noise_threshold
 	 * @param min_NSratio
-	 * @param dist
 	 */
-	public MFDRWithParameter(double white_noise_level,
-			double white_noise_threshold, double min_NSratio, Distance dist) {
-		// this.mfdr = new MFDR();
-		updateWhiteNoiseFilter(white_noise_level, white_noise_threshold,
-				min_NSratio);
-	}
-
-	
 	public void updateWhiteNoiseFilter(double white_noise_level,
 			double white_noise_threshold, double min_NSratio) {
-		wfilter = new WhiteNoiseFilter(white_noise_level,
+		wfilter = new WhiteNoiseCalculator(white_noise_level,
 				white_noise_threshold, min_NSratio);
+		logger.info("white-Noise Filter set to:  Level=" + white_noise_level
+				+ " Threshold=" + white_noise_threshold + " Min NSratio="
+				+ min_NSratio);
 	}
 
 	/**
-	 * This function learns the window sizes from a time series
-	 * the condition use_white_noise_filter defines whether to filter out white noise components.
-	 * @param ts, NoC, use_white_noise_filter
-	 * @return
+	 * This function set white noise filter as null.
 	 */
-	public MFDRObject getBruteForceResult(TimeSeries ts, int NoC, boolean use_white_noise_filter) {
-		MFDRObject result;
-		// STEP 2: AYALYZE IMFs
-		double lowestperiod = 0;
-		if(use_white_noise_filter){
-			// STEP 1 : EMD
-			// EMD service object
-			EMD emd = new EMD(ts, zerocrossingaccuracy, IFparamaters[0],
-					IFparamaters[1], IFparamaters[2]);
-			// Calculate IMF with EMD
-			IMFS imfs = emd.getIMFs(MAXLEVEL);
-			lowestperiod = wfilter.getWhiteNoisePeriod(imfs, ts);
-			result = NoCcalculator.getBruteForceMFDRNoCs(ts, NoC, lowestperiod);
-		} else{
-			result = NoCcalculator.getBruteForceMFDRNoCs(ts, NoC, lowestperiod);
-		}
+	public void updateNullWhiteNoiseFilter() {
+		wfilter = null;
+		logger.info("white-Noise Filter set to null");
+	}
+	
+	public void updateNoCCalculator(NoCCalculator cal){
+		this.NoCcalculator = cal;
+	}
 
-		return result;
-	}
-	
-	
-	public MFDRObject getResult(TimeSeries ts, int NoC, boolean use_white_noise_filter, boolean use_booster) {
-		MFDRObject result;
-		// STEP 2: AYALYZE IMFs
-		double lowestperiod = 0;
-		if(use_white_noise_filter){
-			// STEP 1 : EMD
-			// EMD service object
-			EMD emd = new EMD(ts, zerocrossingaccuracy, IFparamaters[0],
-					IFparamaters[1], IFparamaters[2]);
-			// Calculate IMF with EMD
-			IMFS imfs = emd.getIMFs(MAXLEVEL);
-			lowestperiod = wfilter.getWhiteNoisePeriod(imfs, ts);
-			if(use_booster){
-				MFDRObject[] edge = new MFDRObject[2];
-				extractEdgeComposition(ts, NoC, lowestperiod, edge);
-				result = NoCcalculator.getOptimalMFDRNoCs(edge[0], edge[1], ts, NoC, lowestperiod);
-			} else{
-				result = NoCcalculator.getBruteForceMFDRNoCs(ts, NoC, lowestperiod);
-			}
-			
-		} else{ // No white noise filter
-			if(use_booster){
-				MFDRObject[] edge = new MFDRObject[2];
-				extractEdgeComposition(ts, NoC, lowestperiod, edge);
-				result = NoCcalculator.getOptimalMFDRNoCs(edge[0], edge[1], ts, NoC, lowestperiod);
-			} else{
-				result = NoCcalculator.getBruteForceMFDRNoCs(ts, NoC, lowestperiod);
-			}
-		}
-		return result;
-	}
-	
-
-	private void extractEdgeComposition(TimeSeries ts, int NoC, double lowestperiod, MFDRObject[] edge) {
-		MFDR mfdr;
-		// Compute left
-		mfdr = new MFDR(0, NoC);
-		MFDRWaveData data = mfdr.getDR(ts);
-		double err = DataListCalculator.getInstance()
-				.getDifference(ts, mfdr.getFullResolutionDR(ts)).energyDensity();
-		edge[0] = new MFDRObject(0, NoC, lowestperiod, data, err);
-		
-		//Compute right
-		mfdr = new MFDR(NoC, 0);
-		data = mfdr.getDR(ts);
-		err = DataListCalculator.getInstance()
-				.getDifference(ts, mfdr.getFullResolutionDR(ts)).energyDensity();
-		edge[1] = new MFDRObject(NoC, 0, lowestperiod, data, err);
-	}
-	
-	/*
-	 * This function trains with reduced distance (should be more accurate) It
-	 * provides higher lower bound results and make for sense in terms of
-	 * learning. While inputs are at the same form as when use.
+	/**
+	 * This function provide a brute force solution with O(N) complexity to
+	 * identify optimal NoC combination.
 	 * 
-	 * **** IT DOES NOT WORK......IT VIOLATES the TRIANGLE INEQUALITY
+	 * @param ts , NoC
+	 * @return result
 	 */
-
-	public LearningResults learnParameters(LinkedList<TimeSeries> ts,
-			MFDRWave mfdr, double tolerancevarience, Distance d) {
-
-		LinearLearning alearn = new LR4DLearning(); // STEP 1: Setup training
-													// set
-		VarienceLearning vlearn = new VarienceLearning();
-		
-		LinkedList<TrainingSet> trainingset = alearn.getTrainingSet(ts, mfdr, d);
-
-		// STEP 2: Train Alearn before use.
-		LinearLearningResults weights = alearn.trainingParameters(trainingset);
-		// STEP 3: Vlearn is trained as soon as it initiated.
-		double guaranteed_cmopensation = vlearn.getGuaranteedCompensation(
-				trainingset, weights, tolerancevarience);
-		// STEP 4: Set training resutls
-		return new LearningResults(weights, guaranteed_cmopensation);
+	public MFDRObject getResult(TimeSeries ts, int NoC) {
+		MFDRObject result;
+		double lowestperiod = 0;
+		// Compute lowest period for MFDR-N
+		if (wfilter != null) {
+			EMD emd = new EMD(ts, zerocrossingaccuracy, IFparamaters[0],
+					IFparamaters[1], IFparamaters[2]);
+			IMFS imfs = emd.getIMFs(MAXLEVEL);
+			lowestperiod = wfilter.getWhiteNoisePeriod(imfs, ts);
+		}
+		// Compute NoCs
+		result = NoCcalculator.getMFDRNoCs(ts, NoC, lowestperiod);
+		return result;
 	}
+
+	public String name(){
+		if(wfilter == null){
+			return "MFDR_" + NoCcalculator.name();	
+		} else{
+			return "MFDR-N_" + NoCcalculator.name();	
+		}
+		
+	}
+
 }

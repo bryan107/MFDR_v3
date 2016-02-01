@@ -107,6 +107,12 @@ public class MFDR extends DimensionalityReduction {
 		return output;
 	}
 	
+	/**
+	 * Return Full Resolution MFDR DR.
+	 * @param ts
+	 * @param lowestperiod
+	 * @return
+	 */
 	public TimeSeries getFullResolutionDR(TimeSeries ts, double lowestperiod) {
 		TimeSeries output = new TimeSeries();
 		MFDRWaveData mfdrdata = getDR(ts,lowestperiod);
@@ -122,6 +128,29 @@ public class MFDR extends DimensionalityReduction {
 				.linkedListSum(output, noisefull);
 		return output;
 	}
+	
+	/**
+	 * Return Full Resolution MFDR with an input MFDRWaveData
+	 * @param mfdrdata
+	 * @param ref
+	 * @return
+	 */
+	public TimeSeries getFullResolutionDR(MFDRWaveData mfdrdata, TimeSeries ref){
+		TimeSeries output = new TimeSeries();
+		TimeSeries trendfull = this.pla.getFullResolutionDR(mfdrdata.trends(),
+				ref);
+		TimeSeries seasonalfull = this.dft.getFullResolutionDR(
+				mfdrdata.seasonal(), ref);
+		TimeSeries noisefull = getFullResolutionNoise(
+				mfdrdata.noiseEnergyDensity(), ref);
+		output = DataListOperator.getInstance().linkedListSum(trendfull,
+				seasonalfull);
+		output = DataListOperator.getInstance()
+				.linkedListSum(output, noisefull);
+		return output;
+	}
+	
+	
 	public TimeSeries getFullResolutionNoise(double noise_energy_density,
 			TimeSeries ref) {
 		TimeSeries noisefull = new TimeSeries();

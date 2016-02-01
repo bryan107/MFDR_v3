@@ -3,6 +3,9 @@ package mfdr.core;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
 
+import mfdr.core.back.LearningResults;
+import mfdr.core.back.MFDRParameters;
+import mfdr.core.back.MFDRWaveParameterFacade;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;

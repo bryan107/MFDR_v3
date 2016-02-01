@@ -1,4 +1,4 @@
-package mfdr.core;
+package mfdr.core.back;
 
 import mfdr.learning.LinearLearningResults;
 

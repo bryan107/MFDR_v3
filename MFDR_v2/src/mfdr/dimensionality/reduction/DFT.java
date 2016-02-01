@@ -10,9 +10,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jtransforms.fft.DoubleFFT_1D;
 
-import math.jwave.Transform;
-import math.jwave.transforms.AncientEgyptianDecomposition;
-import math.jwave.transforms.DiscreteFourierTransform;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.DFTDataOld;
@@ -29,8 +26,7 @@ public class DFT extends DimensionalityReduction {
 
 	@Override
 	public String name() {
-		// TODO Auto-generated method stub
-		return null;
+		return "DFT";
 	}
 
 	@Override

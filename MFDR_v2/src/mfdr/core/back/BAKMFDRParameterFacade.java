@@ -1,4 +1,4 @@
-package mfdr.core;
+package mfdr.core.back;
 
 import java.nio.channels.NoConnectionPendingException;
 import java.util.Iterator;
@@ -9,9 +9,10 @@ import org.apache.commons.logging.LogFactory;
 
 import flanagan.analysis.Stat;
 import flanagan.control.LowPassPassive;
+import mfdr.core.MFDRObject;
+import mfdr.core.WhiteNoiseCalculator;
 import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;
-import mfdr.dimensionality.datastructure.MFDRObject;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
 import mfdr.dimensionality.reduction.MFDR;
 import mfdr.dimensionality.reduction.MFDRWave;
@@ -25,8 +26,8 @@ import mfdr.math.emd.EMD;
 import mfdr.math.emd.datastructure.IMFS;
 import mfdr.math.emd.utility.DataListCalculator;
 
-public class MFDRParameterFacade {
-	private static Log logger = LogFactory.getLog(MFDRParameterFacade.class);
+public class BAKMFDRParameterFacade {
+	private static Log logger = LogFactory.getLog(BAKMFDRParameterFacade.class);
 	// private MFDR mfdr;
 	// ****** Post processing flags ******
 	// private boolean windowsizetrain = false;
@@ -41,10 +42,10 @@ public class MFDRParameterFacade {
 	private final int MAXLEVEL = 10;
 
 	// White Noise Filter
-	private WhiteNoiseFilter wfilter;
+	private WhiteNoiseCalculator wfilter;
 
 	// Trend Filter
-	private MFDRNoCCalculator NoCcalculator;
+	private BAKNoCCalculator NoCcalculator;
 
 	// ************************************
 	// ********* Learning Objects *********
@@ -63,12 +64,12 @@ public class MFDRParameterFacade {
 	 * @param motif_k
 	 * @param motif_threshold
 	 */
-	public MFDRParameterFacade(double white_noise_level,
+	public BAKMFDRParameterFacade(double white_noise_level,
 			double white_noise_threshold, double min_NSratio) {
 		// this.mfdr = new MFDR();
 		updateWhiteNoiseFilter(white_noise_level, white_noise_threshold,
 				min_NSratio);
-		this.NoCcalculator = new MFDRNoCCalculator();
+		this.NoCcalculator = new BAKNoCCalculator();
 	}
 	
 	/**
@@ -78,7 +79,7 @@ public class MFDRParameterFacade {
 	 * @param min_NSratio
 	 * @param dist
 	 */
-	public MFDRParameterFacade(double white_noise_level,
+	public BAKMFDRParameterFacade(double white_noise_level,
 			double white_noise_threshold, double min_NSratio, Distance dist) {
 		// this.mfdr = new MFDR();
 		updateWhiteNoiseFilter(white_noise_level, white_noise_threshold,
@@ -88,7 +89,7 @@ public class MFDRParameterFacade {
 	
 	public void updateWhiteNoiseFilter(double white_noise_level,
 			double white_noise_threshold, double min_NSratio) {
-		wfilter = new WhiteNoiseFilter(white_noise_level,
+		wfilter = new WhiteNoiseCalculator(white_noise_level,
 				white_noise_threshold, min_NSratio);
 	}
 
@@ -220,14 +221,14 @@ public class MFDRParameterFacade {
 		MFDRWaveData data = mfdr.getDR(ts);
 		double err = DataListCalculator.getInstance()
 				.getDifference(ts, mfdr.getFullResolutionDR(ts)).energyDensity();
-		edge[0] = new MFDRObject(0, NoC, lowestperiod, data, err);
+		edge[0] = new MFDRObject(0, NoC, lowestperiod, data, err,0);
 		
 		//Compute right
 		mfdr = new MFDR(NoC, 0);
 		data = mfdr.getDR(ts);
 		err = DataListCalculator.getInstance()
 				.getDifference(ts, mfdr.getFullResolutionDR(ts)).energyDensity();
-		edge[1] = new MFDRObject(NoC, 0, lowestperiod, data, err);
+		edge[1] = new MFDRObject(NoC, 0, lowestperiod, data, err,0);
 	}
 	
 	/*

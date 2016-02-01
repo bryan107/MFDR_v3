@@ -1,8 +1,6 @@
 package experiment.thread;
 
 import experiment.core.ExperimentCore;
-import experiment.core.RepresentationErrorExpCorewithNewMFDR;
-import experiment.core.RepresentationErrorHeatMap;
 import junit.framework.TestCase;
 
 public class ExperimentContainer1 extends TestCase {
@@ -18,7 +16,7 @@ public class ExperimentContainer1 extends TestCase {
 //		ClosenessOfDistanceCoreWithNewMFDR core = new ClosenessOfDistanceCoreWithNewMFDR();
 //		core.runRandom1000(readaddress, writeaddress, listaddress, 2, 2, 10);
 
-		ExperimentCore core = new RepresentationErrorHeatMap();
-		core.run(readaddress, writeaddress, listaddress, 1, 1, 8, 0);
+//		ExperimentCore core = new RepresentationErrorHeatMap();
+//		core.run(readaddress, writeaddress, listaddress, 1, 1, 8, 0);
 	}
 }
