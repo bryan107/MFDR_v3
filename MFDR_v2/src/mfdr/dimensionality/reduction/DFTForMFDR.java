@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.jtransforms.fft.DoubleFFT_1D;
