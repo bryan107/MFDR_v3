@@ -15,7 +15,6 @@ import mfdr.distance.Distance;
 import mfdr.math.Sum;
 import mfdr.math.emd.utility.DataListCalculator;
 import mfdr.utility.DataListOperator;
-import mfdr.utility.Print;
 
 public class MFDRLCM extends DimensionalityReduction {
 	private static Log logger = LogFactory.getLog(MFDRLCM.class);
@@ -226,8 +225,7 @@ public class MFDRLCM extends DimensionalityReduction {
 	}
 
 	public TimeSeries getResidual(TimeSeries ts, TimeSeries trendfull) {
-		return DataListOperator.getInstance().linkedtListSubtraction(ts,
-				trendfull);
+		return DataListOperator.getInstance().linkedtListSubtraction(ts,trendfull);
 	}
 
 	public TimeSeries getTrend(TimeSeries ts) {

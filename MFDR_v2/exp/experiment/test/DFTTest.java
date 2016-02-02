@@ -1,14 +1,11 @@
 package experiment.test;
 
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
-import org.apache.commons.collections.map.HashedMap;
-import org.jtransforms.fft.DoubleFFT_1D;
-
+import junit.framework.TestCase;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.DFTWaveData;
@@ -17,17 +14,14 @@ import mfdr.dimensionality.reduction.DFT;
 import mfdr.dimensionality.reduction.DFTForMFDR;
 import mfdr.dimensionality.reduction.DFTWave;
 import mfdr.dimensionality.reduction.MFDR;
-import mfdr.dimensionality.reduction.MFDRWave;
 import mfdr.dimensionality.reduction.PLA;
 import mfdr.distance.Distance;
 import mfdr.distance.EuclideanDistance;
+import mfdr.math.Sum;
 import mfdr.math.emd.utility.DataListCalculator;
 import mfdr.math.trigonometric.Theta;
 import mfdr.math.trigonometric.Triangle;
-import mfdr.utility.DataListOperator;
 import mfdr.utility.File;
-import mfdr.math.Sum;
-import junit.framework.TestCase;
 
 public class DFTTest extends TestCase {
 
@@ -105,7 +99,7 @@ public class DFTTest extends TestCase {
 		
 		double dist_o = mfdr.getDistanceBruteForce(data1, data2, ts1, distance);
 		double dist_of = mfdr.getCrossBruteForceDistance(data1, data2, ts1, distance);
-		double dist_f = mfdr.getDistance(data1, data2, ts1, distance);
+		double dist_f = mfdr.getDistance(data1, data2, ts1.size(), distance);
 		
 		
 		System.out.println("DIST:" + distance.calDistance(ts1, ts2, ts1));

@@ -1,4 +1,4 @@
-package mfdr.dimensionality.reduction;
+package mfdr.dimensionality.reduction.BAK;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.PLAData;
+import mfdr.dimensionality.reduction.DimensionalityReduction;
 import mfdr.distance.Distance;
 import mfdr.math.statistic.LinearEstimator;
 import mfdr.math.statistic.LinearRegression;

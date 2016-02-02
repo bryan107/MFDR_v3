@@ -1,4 +1,4 @@
-package mfdr.dimensionality.reduction;
+package mfdr.dimensionality.reduction.BAK;
 
 import java.util.LinkedList;
 
@@ -12,6 +12,9 @@ import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.MFDRData;
 import mfdr.dimensionality.datastructure.DFTData;
 import mfdr.dimensionality.datastructure.PLAData;
+import mfdr.dimensionality.reduction.DFT;
+import mfdr.dimensionality.reduction.DimensionalityReduction;
+import mfdr.dimensionality.reduction.PLA;
 import mfdr.distance.Distance;
 import mfdr.learning.LinearLearningResults;
 import mfdr.utility.DataListOperator;

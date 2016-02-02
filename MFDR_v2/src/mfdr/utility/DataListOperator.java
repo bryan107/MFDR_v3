@@ -168,6 +168,18 @@ public class DataListOperator {
 		return outputlist;
 	}
 
+	
+	/**
+	 * Convert Double Array to <Data> LinkedList. 
+	 */
+	public LinkedList<Data> arrayToLinkedList(double[] array) {
+		LinkedList<Data> list = new LinkedList<Data>();
+		for(int i = 0 ; i < array.length ; i++){
+			list.add(new Data(0,array[i]));
+		}
+		return list;
+	}
+	
 	/**
 	 * Convert <Data> LinkedList to mono-property Array. 
 	 * The parameter "option" controls which information is converted 

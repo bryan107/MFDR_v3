@@ -8,10 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import mfdr.core.MFDRObject;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
-import mfdr.dimensionality.reduction.DFT;
-import mfdr.dimensionality.reduction.DFTForMFDR;
 import mfdr.dimensionality.reduction.MFDR;
-import mfdr.dimensionality.reduction.PLA;
 import mfdr.math.emd.utility.DataListCalculator;
 
 /**

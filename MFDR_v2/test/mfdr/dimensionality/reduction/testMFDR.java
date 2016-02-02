@@ -21,7 +21,6 @@ public class testMFDR extends TestCase {
 		generateResidual(ts2, -2, 0.30, 128);
 		System.out.println("Origin: " + distance.calDistance(ts1, ts2, ts1));
 		System.out.println("MFDR: " + mfdr.getDistance(ts1, ts2, distance));
-		System.out.println("MFDR-LB: " + mfdr.getLowerBoundDistance(ts1, ts2, distance));
 		System.out.println("MFDR-FULL: " + mfdr.getDistanceBruteForce(ts1, ts2, distance));
 	}
 	

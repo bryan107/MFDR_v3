@@ -24,7 +24,7 @@ public class DFTForMFDR extends DimensionalityReduction {
 	
 	@Override
 	public String name() {
-		return "DFT";
+		return "DFTforMFDR";
 	}
 
 	@Override
@@ -132,6 +132,13 @@ public class DFTForMFDR extends DimensionalityReduction {
 		fft.realForward(valuearray);
 		return valuearray;
 	}
+	
+	public TimeSeries convertFreqtoTS(double[] freq){
+		DoubleFFT_1D fft = new DoubleFFT_1D(freq.length);
+		fft.realInverse(freq, true);
+		return (TimeSeries) DataListOperator.getInstance().arrayToLinkedList(freq);
+		
+	}
 
 	public double[] extractHighFrequency(double[] input, double lowestperiod, double timeinterval){
 		int normalisedperiod = (int)(lowestperiod/timeinterval);
@@ -146,7 +153,6 @@ public class DFTForMFDR extends DimensionalityReduction {
 	
 	@Override
 	public TimeSeries getFullResolutionDR(TimeSeries ts) {
-		
 		LinkedList<DFTWaveData> wavelist = getDR(ts);
 		return getFullResolutionDR(wavelist, ts);
 	}
