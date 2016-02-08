@@ -104,7 +104,7 @@ public class Print {
 
 	public void printArray(double[] array, long size) {
 		for (int i = 0; i < array.length && i < size; i++) {
-			System.out.print(array[i] + ", ");
+			System.out.print("[" + i + "]:" + valuedf.format(array[i]) + " ");
 		}
 		System.out.println();
 	}

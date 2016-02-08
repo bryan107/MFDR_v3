@@ -86,7 +86,7 @@ public class HeuristicNoCCalculator implements NoCCalculator {
 		double err = DataListCalculator.getInstance()
 				.getDifference(ts, mfdr.getFullResolutionDR(data0, ts))
 				.energyDensity();
-
+		edge[0] = new MFDRObject(NoC, 0, lowestperiod, data0, err, 0);
 		// Compute right (with full NoC_s)
 		mfdr = new MFDR(0, NoC);
 		MFDRWaveData data1;
@@ -99,7 +99,7 @@ public class HeuristicNoCCalculator implements NoCCalculator {
 				.energyDensity();
 
 		// Store results
-		edge[0] = new MFDRObject(NoC, 0, lowestperiod, data0, err, 0);
+		
 		edge[1] = new MFDRObject(0, NoC, lowestperiod, data1, err, 0);
 	}
 

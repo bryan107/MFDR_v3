@@ -1,13 +1,16 @@
 package mfdr.dimensionality.reduction;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
+import mfdr.dimensionality.datastructure.DFTData;
 import mfdr.dimensionality.datastructure.PLAData;
 import mfdr.distance.Distance;
 
@@ -40,10 +43,16 @@ public class PLA extends DimensionalityReduction {
 
 	private void calFullResolutionDR(TimeSeries ts, TimeSeries plafull,
 			LinkedList<PLAData> pla) {
+		if(pla.size()==0){
+			for(Data data : ts){
+				plafull.add(new Data(data.time(), 0));
+			}
+			return;
+		}
 		int windowsize = ts.size()/pla.size();
-		Iterator<Data> it = ts.iterator();
 		int winnum = 0;
 		int plaindex = 0;
+		Iterator<Data> it = ts.iterator();
 		while(it.hasNext()){
 			Data data = it.next();
 			double value = pla.get(plaindex).getValue(data.time()-(plaindex*windowsize)+1);
@@ -66,7 +75,7 @@ public class PLA extends DimensionalityReduction {
 	public LinkedList<PLAData> getDR(TimeSeries ts) {
 		LinkedList<PLAData> pla = new LinkedList<PLAData>();
 		if (NoC == 0) {
-			pla.add(new PLAData(ts.peek().time(), 0, 0));
+			pla.add(new PLAData(0, 0, 0));
 			return pla;
 		}
 		// n = window size
@@ -111,8 +120,14 @@ public class PLA extends DimensionalityReduction {
 		return distance.calDistance(dr1full, dr2full, dr1full);
 	}
 
-	// TODO These are only temperate distance functions, need to implement a
-	// real one
+	/**
+	 * Compute Distance
+	 * @param dr1
+	 * @param dr2
+	 * @param size
+	 * @param distance
+	 * @return
+	 */
 	public double getDistance(LinkedList<PLAData> dr1, LinkedList<PLAData> dr2,
 			int size, Distance distance) {
 		if (dr1.size() != dr2.size()) {
@@ -132,5 +147,32 @@ public class PLA extends DimensionalityReduction {
 			dist_total +=  part1 + part2 + part3;
 		}
 		return Math.sqrt(dist_total);
+	}
+	
+	public double[] computeIndexingQuery(TimeSeries query, LinkedList<LinkedList<PLAData>> plalist, Distance distance){
+		LinkedList<LinkedList<PLAData>> q_plalist = extractIndexingQuery(query, plalist);
+		return computeIndexingQuery(q_plalist, plalist, query.size(), distance);
+	}
+	
+	public double[] computeIndexingQuery(LinkedList<LinkedList<PLAData>> q_plalist, LinkedList<LinkedList<PLAData>> plalist, int size, Distance distance){
+		double[] dist_query = new double[plalist.size()];
+		for(int i = 0 ; i < plalist.size() ; i++){
+			dist_query[i] = getDistance(q_plalist.get(i), plalist.get(i), size, distance);
+		}
+		return dist_query;
+	}
+
+	public LinkedList<LinkedList<PLAData>> extractIndexingQuery(TimeSeries query, LinkedList<LinkedList<PLAData>> plalist){
+		LinkedList<LinkedList<PLAData>> q_plalist = new LinkedList<LinkedList<PLAData>>();
+		PLA q_pla = new PLA(0);
+		// Iterate through plalist
+		for(int i = 0 ; i < plalist.size() ; i++){
+			if(plalist.get(i).size() == 1 && plalist.get(i).get(0).a0() == 0 && plalist.get(i).get(0).a1() == 0)
+				q_pla.setNoC(0);
+			else
+				q_pla.setNoC(plalist.get(i).size());
+			q_plalist.add(q_pla.getDR(query));
+		}
+		return q_plalist;
 	}
 }

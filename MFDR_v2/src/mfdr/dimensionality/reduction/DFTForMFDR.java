@@ -39,6 +39,19 @@ public class DFTForMFDR extends DimensionalityReduction {
 	 * @return
 	 */
 	public LinkedList<DFTWaveData> getDR(double[] hilb) {
+//		LinkedList<DFTWaveData> wavelist = new LinkedList<DFTWaveData>();
+//		// Get Sorted Hilb
+//		
+//		// Store results to DFTData Map
+//		
+//		Map<Integer, Double> final_map = new HashMap<Integer, Double>();
+//        // Index does not start from 0 but 2 as Deviation is preserved by PLA.
+//        for(int index = 0 ; index < NoC ; index++) {
+//        	double value = hilb[index + 2];
+//			final_map.put(index, value);
+//		}
+//        
+//        Iterator<Integer> it = final_map.keySet().iterator();
 		LinkedList<DFTWaveData> wavelist = new LinkedList<DFTWaveData>();
 		// Get Sorted Hilb
 		
@@ -66,17 +79,17 @@ public class DFTForMFDR extends DimensionalityReduction {
 			if(removedlist.contains(index))
 				continue;
 			// If index < 2
-			if(index < 2){
-				double phasedelay = 0;
-				double amplitude = hilb[index] / hilb.length;
-				double freq;
-				if(index == 0)
-					freq = 0;
-				else
-					freq = hilb.length/2;
-				wavelist.add(new DFTWaveData(amplitude, phasedelay, freq));
-				map.put(index, amplitude);
-			}
+//			if(index < 2){
+//				double phasedelay = 0;
+//				double amplitude = hilb[index] / hilb.length;
+//				double freq;
+//				if(index == 0)
+//					freq = 0;
+//				else
+//					freq = hilb.length/2;
+//				wavelist.add(new DFTWaveData(amplitude, phasedelay, freq));
+//				map.put(index, amplitude);
+//			}
 			// If index is a real rumber
 			if(index % 2 == 0){
 				double cos, sin;

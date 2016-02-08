@@ -8,7 +8,6 @@ import org.apache.commons.logging.LogFactory;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
 import mfdr.math.emd.InstantFrequencyWeighted;
-import mfdr.math.emd.TestEMD;
 import mfdr.math.emd.datastructure.IMF;
 import mfdr.utility.Print;
 import junit.framework.TestCase;

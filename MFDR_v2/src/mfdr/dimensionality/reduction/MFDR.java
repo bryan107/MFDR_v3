@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;
+import mfdr.dimensionality.datastructure.DFTData;
 import mfdr.dimensionality.datastructure.DFTWaveData;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
 import mfdr.dimensionality.datastructure.PLAData;
@@ -21,7 +22,7 @@ public class MFDR extends DimensionalityReduction {
 	private int NoC_t, NoC_s;
 	// private double angle;
 	protected PLA pla;
-	protected DFTForMFDR dft;
+	protected DFT dft;
 
 	/**
 	 * MFDR provides a dimensionality reduction function that combines: <li>
@@ -73,7 +74,7 @@ public class MFDR extends DimensionalityReduction {
 
 	public void updateSeasonalComponent(int NoC_s) {
 		this.NoC_s = NoC_s;
-		this.dft = new DFTForMFDR(NoC_s);
+		this.dft = new DFT(NoC_s);
 	}
 
 	/*
@@ -113,6 +114,85 @@ public class MFDR extends DimensionalityReduction {
 		updateSeasonalComponent(NoC_s);
 		return getDR(ts);
 	}
+
+	public double[] computeIndexingQuery(TimeSeries query, LinkedList<MFDRWaveData> mfdrlist, Distance distance, int NoC, double lowestperiod){
+		PLA pla_q = new PLA(0);
+		DFT dft_q = new DFT(0);
+		int size = query.size();
+			
+		/* Prepare Residual form query*/
+		LinkedList<LinkedList<PLAData>> q_trend=  new LinkedList<LinkedList<PLAData>>();
+		LinkedList<TimeSeries> q_residualfull=  new LinkedList<TimeSeries>();
+		// Extract all possible trends and compute residuals
+		for(int i = 0 ; i <= NoC ; i++){
+			pla_q.setNoC(i);
+			q_trend.add(pla_q.getDR(query));
+			TimeSeries q_trendfull = pla_q.getFullResolutionDR(q_trend.get(i),query);
+			// Add the residual has lowest NoC_s at the front.
+			q_residualfull.addFirst(DataListOperator.getInstance().linkedtListSubtraction(query, q_trendfull));
+		}
+		
+		/* Prepare index */
+		//Prepare plalist
+		LinkedList<LinkedList<PLAData>> plalist = new LinkedList<LinkedList<PLAData>>();
+		for(int i = 0 ; i < mfdrlist.size() ; i++){
+			plalist.add(mfdrlist.get(i).trends());
+		}
+		// Prepare dftlist
+		LinkedList<DFTData> dftlist = new LinkedList<DFTData>();
+		for(int i = 0 ; i < mfdrlist.size() ; i++){
+			dftlist.add(mfdrlist.get(i).seasonal());
+		}
+		
+		/* Compute query distance with the index (i.e. plalist)*/
+		
+		// Extract PLAData and compute PLA distance
+		LinkedList<LinkedList<PLAData>> q_pladata = pla_q.extractIndexingQuery(query, plalist);
+		double[] dist_pla = pla_q.computeIndexingQuery(q_pladata, plalist, size, distance);
+		
+		// Extract DFTData and compute DFT distance
+		LinkedList<DFTData> q_dftdata = dft_q.extractIndexingQuery(q_residualfull, dftlist);
+		double[] dist_dft = dft_q.computeIndexingQuery(q_dftdata, dftlist, size, distance);
+		
+		// Extract Noise Energy Density
+		double[] noise_energy_density = new double[NoC+1];
+		double[][] freq = new double[NoC+1][size];
+		// NOTE that q_residualfull is indexed with the NoC_s.
+		for(int i = 0 ; i <= NoC ; i++){
+			freq[i] = dft_q.converTSToFrequency(q_residualfull.get(i));
+			if(lowestperiod != 0){
+				double[] noise = dft.extractHighFrequency(freq[i], lowestperiod,q_residualfull.get(i).timeInterval());
+				noise_energy_density[i] = noiseEnergyDensity(noise);
+			} else{
+				noise_energy_density[i] = 0;
+			}
+		}
+		
+		LinkedList<MFDRWaveData> q_mdftlist = new LinkedList<MFDRWaveData>();
+		for(int i = 0 ; i < q_pladata.size() ; i++){
+			// NOTE that q_residualfull is indexed with the NoC_s.
+			q_mdftlist.add(new MFDRWaveData(q_pladata.get(i), q_dftdata.get(i), noise_energy_density[q_dftdata.get(i).getMap().size()]));
+		}
+			
+		// Compute Cross Term distance
+		double[] dist_cross = new double[mfdrlist.size()];
+		for(int i = 0 ; i < mfdrlist.size() ; i++){
+			dist_cross[i] = getTotalCrossDistance(q_mdftlist.get(i), mfdrlist.get(i),	size);
+		}
+		// Compute Noise distance
+		double[] noiseenergy = new double[mfdrlist.size()];
+		for(int i = 0 ; i < mfdrlist.size() ; i++){
+			noiseenergy[i] = q_mdftlist.get(i).noiseEnergyDensity()	+ mfdrlist.get(i).noiseEnergyDensity();
+		}
+		
+		double[] dist_mfdr = new double[mfdrlist.size()];
+		for(int i = 0 ; i < mfdrlist.size() ; i++){
+			dist_mfdr[i] = Math.sqrt(Math.pow(dist_pla[i], 2)
+					+ Math.pow(dist_dft[i], 2) + dist_cross[i] + size* noiseenergy[i]);
+		}
+		return dist_mfdr;
+	}
+	
 	
 	/**
 	 * Default setting does not extract noises.
@@ -126,7 +206,7 @@ public class MFDR extends DimensionalityReduction {
 		TimeSeries residualfull = DataListOperator.getInstance()
 				.linkedtListSubtraction(ts, trendfull);
 		// STEP 2: Calculate Seasonal Components
-		LinkedList<DFTWaveData> seasonal = dft.getDR(residualfull);
+		DFTData seasonal = dft.getDR(residualfull);
 		double noise_energy_density = 0;
 		// Save results to MDFRData and return
 		MFDRWaveData d =  new MFDRWaveData(trends, seasonal, noise_energy_density);
@@ -153,7 +233,7 @@ public class MFDR extends DimensionalityReduction {
 		double[] noise = dft.extractHighFrequency(freq, lowestperiod,
 				residualfull.timeInterval());
 		// STEP 3: Calculate Seasonal Components
-		LinkedList<DFTWaveData> seasonal = dft.getDR(freq);
+		DFTData seasonal = dft.getDR(freq);
 		double noise_energy_density = noiseEnergyDensity(noise);
 		// Save results to MDFRData and return
 		MFDRWaveData d =  new MFDRWaveData(trends, seasonal, noise_energy_density);
@@ -259,8 +339,6 @@ public class MFDR extends DimensionalityReduction {
 		return getFullResolutionDR(ts);
 	}
 
-	
-
 	protected double noiseEnergyDensity(double[] noise) {
 		if (noise.length == 0) {
 			return 0;
@@ -288,7 +366,7 @@ public class MFDR extends DimensionalityReduction {
 		return this.pla.getFullResolutionDR(ts);
 	}
 
-	// ************************************************
+	// ****************************************************
 	
 	// *************** Compute Distance *******************
 	@Override
@@ -314,23 +392,8 @@ public class MFDR extends DimensionalityReduction {
 				+ Math.pow(seasonal_distance, 2) + cross_distance + size
 				* noiseenergy);
 	}
-
-	public double getCrossBruteForceDistance(MFDRWaveData mfdrdata1,
-			MFDRWaveData mfdrdata2, TimeSeries ts1, Distance distance) {
-
-		MFDRDistanceDetails dist_details = getDistanceDetails(mfdrdata1,
-				mfdrdata2, ts1.size(), distance);
-		double trend_distance = dist_details.trend();
-		double seasonal_distance = dist_details.seasonal();
-		double cross_distance = getTotalCellDistance(mfdrdata1, mfdrdata2,
-				ts1.size());
-		logger.info("Cross Brute");
-		logger.info("Trend Dist:" + trend_distance);
-		logger.info("Seasonal Dist:" + seasonal_distance);
-		logger.info("Brute Cross Error:" + cross_distance);
-		return Math.sqrt(Math.pow(trend_distance, 2)
-				+ Math.pow(seasonal_distance, 2) + cross_distance);
-	}
+	
+	/* Get Cross Distances*/
 
 	public double getTotalCellDistance(MFDRWaveData mfdrdata1,
 			MFDRWaveData mfdrdata2, int tslength) {
@@ -343,12 +406,12 @@ public class MFDR extends DimensionalityReduction {
 		for (int j = 0; j < lcm; j++) {
 			double a3 = trends.get(0).get(j).a1() - trends.get(1).get(j).a1();
 			double b3 = trends.get(0).get(j).a0() - trends.get(1).get(j).a0();
-			for (int i = 0; i < mfdrdata1.seasonal().size(); i++) {
-				total1 += getCellDistance(j + 1, a3, b3, mfdrdata1.seasonal()
-						.get(i), lcm, tslength);
+			for (int i = 0; i < mfdrdata1.seasonal().getWaveList().size(); i++) {
+				total1 += getCellDistance(j + 1, a3, b3, mfdrdata1.seasonal().
+						getWaveList().get(i), lcm, tslength);
 			}
-			for (int i = 0; i < mfdrdata2.seasonal().size(); i++) {
-				total2 += getCellDistance(j + 1, a3, b3, mfdrdata2.seasonal()
+			for (int i = 0; i < mfdrdata2.seasonal().getWaveList().size(); i++) {
+				total2 += getCellDistance(j + 1, a3, b3, mfdrdata2.seasonal().getWaveList()
 						.get(i), lcm, tslength);
 			}
 		}
@@ -372,27 +435,26 @@ public class MFDR extends DimensionalityReduction {
 		double ts2_total = 0;
 		// get LCM plaData lists
 		int lcm = lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
-		LinkedList<LinkedList<PLAData>> trends = getLCMPLADataList(
-				mfdrdata1.trends(), mfdrdata2.trends(), lcm, tslength);
+		LinkedList<LinkedList<PLAData>> trends = getLCMPLADataList(mfdrdata1.trends(), mfdrdata2.trends(), lcm, tslength);
 		// Iteratino
 		for (int j = 0; j < lcm; j++) {
 			double a3 = trends.get(0).get(j).a1() - trends.get(1).get(j).a1();
 			double b3 = trends.get(0).get(j).a0() - trends.get(1).get(j).a0();
 			// MFDR_1
-			for (int i = 0; i < mfdrdata1.seasonal().size(); i++) {
-				double c1 = mfdrdata1.seasonal().get(i).amplitude();
+			for (int i = 0; i < mfdrdata1.seasonal().getWaveList().size(); i++) {
+				double c1 = mfdrdata1.seasonal().getWaveList().get(i).amplitude();
 				int windowsize = tslength / lcm;
 				ts1_total += getCrossDistance(a3, b3, c1, windowsize, mfdrdata1
-						.seasonal().get(i).g(tslength), mfdrdata1.seasonal()
+						.seasonal().getWaveList().get(i).g(tslength), mfdrdata1.seasonal().getWaveList()
 						.get(i).k(tslength, j + 1, windowsize));
 
 			}
 			// MFDR_2
-			for (int i = 0; i < mfdrdata2.seasonal().size(); i++) {
-				double c2 = mfdrdata2.seasonal().get(i).amplitude();
+			for (int i = 0; i < mfdrdata2.seasonal().getWaveList().size(); i++) {
+				double c2 = mfdrdata2.seasonal().getWaveList().get(i).amplitude();
 				int windowsize = tslength / lcm;
 				ts2_total += getCrossDistance(a3, b3, c2, windowsize, mfdrdata2
-						.seasonal().get(i).g(tslength), mfdrdata2.seasonal()
+						.seasonal().getWaveList().get(i).g(tslength), mfdrdata2.seasonal().getWaveList()
 						.get(i).k(tslength, j + 1, windowsize));
 			}
 		}
@@ -414,6 +476,76 @@ public class MFDR extends DimensionalityReduction {
 		return sum;
 	}
 
+	/**
+	 * Convert two input PLAData lists (i.e. trend1 and trend2) into two new lists
+	 * which are divided into their least-common-multiple segments.
+	 * e.g. trend1 = PLA(2) and trend2 = PLA(3), output = PLA(6).
+	 * @param trend1
+	 * @param trend2
+	 * @param lcm
+	 * @param tslength
+	 * @return LinkedList<LinkedList<PLAData>> trendlist
+	 * <li> trendlist.get(0) = LCM list from trend1.
+	 * <li> trendlist.get(0) = LCM list from trend2.
+	 */
+	public LinkedList<LinkedList<PLAData>> getLCMPLADataList(
+			LinkedList<PLAData> trend1, LinkedList<PLAData> trend2, int lcm,
+			double tslength) {
+		LinkedList<LinkedList<PLAData>> list = new LinkedList<LinkedList<PLAData>>();
+		int division1 = lcm / trend1.size();
+		int division2 = lcm / trend2.size();
+		double windowsize = tslength / lcm;
+		LinkedList<PLAData> trend_lcm_1 = new LinkedList<PLAData>();
+		LinkedList<PLAData> trend_lcm_2 = new LinkedList<PLAData>();
+		for (int i = 0; i < lcm; i++) {
+			double time = trend1.get(0).time() + windowsize * i;
+			trend_lcm_1.add(new PLAData(time, trend1.get(i / division1).a0()
+					+ trend1.get(i / division1).a1() * (i % division1)
+					* windowsize, trend1.get(i / division1).a1()));
+			trend_lcm_2.add(new PLAData(time, trend2.get(i / division2).a0()
+					+ trend2.get(i / division2).a1() * (i % division2)
+					* windowsize, trend2.get(i / division2).a1()));
+		}
+		list.add(trend_lcm_1);
+		list.add(trend_lcm_2);
+		return list;
+	}
+
+	public int gcd(int a, int b) {
+		while (b > 0) {
+			int temp = b;
+			b = a % b; // % is remainder
+			a = temp;
+		}
+		return a;
+	}
+
+	public int lcm(int a, int b) {
+		return a * (b / gcd(a, b));
+	}
+
+	
+	
+	/* ************************************************* */
+    /*                    TEST CODEs                     */
+	/* ************************************************* */
+	public double getCrossBruteForceDistance(MFDRWaveData mfdrdata1,
+			MFDRWaveData mfdrdata2, TimeSeries ts1, Distance distance) {
+
+		MFDRDistanceDetails dist_details = getDistanceDetails(mfdrdata1,
+				mfdrdata2, ts1.size(), distance);
+		double trend_distance = dist_details.trend();
+		double seasonal_distance = dist_details.seasonal();
+		double cross_distance = getTotalCellDistance(mfdrdata1, mfdrdata2,
+				ts1.size());
+		logger.info("Cross Brute");
+		logger.info("Trend Dist:" + trend_distance);
+		logger.info("Seasonal Dist:" + seasonal_distance);
+		logger.info("Brute Cross Error:" + cross_distance);
+		return Math.sqrt(Math.pow(trend_distance, 2)
+				+ Math.pow(seasonal_distance, 2) + cross_distance);
+	}
+	
 	public double getDistanceBruteForce(TimeSeries ts1, TimeSeries ts2,
 			Distance distance) {
 		MFDRWaveData mfdrdata1 = getDR(ts1);
@@ -463,7 +595,7 @@ public class MFDR extends DimensionalityReduction {
 		if (mfdrdata1.trends().size() != mfdrdata2.trends().size()) {
 			logger.info("Trend Size does not comparable");
 			return false;
-		} else if (mfdrdata1.seasonal().size() != mfdrdata2.seasonal().size()) {
+		} else if (mfdrdata1.seasonal().getWaveList().size() != mfdrdata2.seasonal().getWaveList().size()) {
 			logger.info("Seasonal Size does not comparable");
 			return false;
 		} else {
@@ -486,11 +618,11 @@ public class MFDR extends DimensionalityReduction {
 
 	public MFDRDistanceDetails getDistanceDetails(MFDRWaveData mfdrdata1,
 			MFDRWaveData mfdrdata2, int size, Distance distance) {
-		// Prepare PLA and DWT data structure
+		// Prepare PLA and DFT data structure
 		LinkedList<PLAData> trend1 = mfdrdata1.trends();
 		LinkedList<PLAData> trend2 = mfdrdata2.trends();
-		LinkedList<DFTWaveData> seasonal1 = mfdrdata1.seasonal();
-		LinkedList<DFTWaveData> seasonal2 = mfdrdata2.seasonal();
+		LinkedList<DFTWaveData> seasonal1 = mfdrdata1.seasonal().getWaveList();
+		LinkedList<DFTWaveData> seasonal2 = mfdrdata2.seasonal().getWaveList();
 		double e1 = mfdrdata1.noiseEnergyDensity();
 		double e2 = mfdrdata2.noiseEnergyDensity();
 		// Calculate distances of low frequency pla and high frequency dwt
@@ -515,40 +647,5 @@ public class MFDR extends DimensionalityReduction {
 		System.out.println();
 	}
 
-	public LinkedList<LinkedList<PLAData>> getLCMPLADataList(
-			LinkedList<PLAData> trend1, LinkedList<PLAData> trend2, int lcm,
-			double tslength) {
-		LinkedList<LinkedList<PLAData>> list = new LinkedList<LinkedList<PLAData>>();
-		int division1 = lcm / trend1.size();
-		int division2 = lcm / trend2.size();
-		double windowsize = tslength / lcm;
-		LinkedList<PLAData> trend_lcm_1 = new LinkedList<PLAData>();
-		LinkedList<PLAData> trend_lcm_2 = new LinkedList<PLAData>();
-		for (int i = 0; i < lcm; i++) {
-			double time = trend1.get(0).time() + windowsize * i;
-			trend_lcm_1.add(new PLAData(time, trend1.get(i / division1).a0()
-					+ trend1.get(i / division1).a1() * (i % division1)
-					* windowsize, trend1.get(i / division1).a1()));
-			trend_lcm_2.add(new PLAData(time, trend2.get(i / division2).a0()
-					+ trend2.get(i / division2).a1() * (i % division2)
-					* windowsize, trend2.get(i / division2).a1()));
-		}
-		list.add(trend_lcm_1);
-		list.add(trend_lcm_2);
-		return list;
-	}
-
-	public int gcd(int a, int b) {
-		while (b > 0) {
-			int temp = b;
-			b = a % b; // % is remainder
-			a = temp;
-		}
-		return a;
-	}
-
-	public int lcm(int a, int b) {
-		return a * (b / gcd(a, b));
-	}
-
+	
 }

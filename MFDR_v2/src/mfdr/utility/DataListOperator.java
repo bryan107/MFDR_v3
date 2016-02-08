@@ -172,8 +172,8 @@ public class DataListOperator {
 	/**
 	 * Convert Double Array to <Data> LinkedList. 
 	 */
-	public LinkedList<Data> arrayToLinkedList(double[] array) {
-		LinkedList<Data> list = new LinkedList<Data>();
+	public TimeSeries arrayToLinkedList(double[] array) {
+		TimeSeries list = new TimeSeries();
 		for(int i = 0 ; i < array.length ; i++){
 			list.add(new Data(0,array[i]));
 		}
@@ -184,7 +184,7 @@ public class DataListOperator {
 	 * Convert <Data> LinkedList to mono-property Array. 
 	 * The parameter "option" controls which information is converted 
 	 * <li> TIME(0): convert the time information into array. 
-	 * <li> VALUE(1): convert the time information into array.
+	 * <li> VALUE(1): convert the value information into array.
 	 */
 	public double[] linkedListToArray(LinkedList<Data> linkedlist, short option) {
 		double[] array = new double[linkedlist.size()];
@@ -217,8 +217,8 @@ public class DataListOperator {
 	 * Convert Data LinkedList to a 2-D array containing both time and value
 	 * reference NO input parameter is needed.
 	 * <ul> 
-	 * <li> Array[i][0]: TIME 
-	 * <li> Array[i][1]: VALUE
+	 * <li> Array[0][i]: TIME 
+	 * <li> Array[1][i]: VALUE
 	 * </ul>
 	 */
 	public double[][] linkedDataListToArray(LinkedList<Data> linkedlist) {

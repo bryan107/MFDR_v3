@@ -1,6 +1,9 @@
 package mfdr.dimensionality.datastructure;
 
 
+import java.util.Map;
+
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
