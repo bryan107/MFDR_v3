@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import mfdr.core.MFDRObject;
+import mfdr.core.MFDRWithParameter;
 import mfdr.datastructure.Data;
 import mfdr.datastructure.MFDRDistanceDetails;
 import mfdr.datastructure.TimeSeries;
@@ -119,7 +121,10 @@ public class MFDR extends DimensionalityReduction {
 		PLA pla_q = new PLA(0);
 		DFT dft_q = new DFT(0);
 		int size = query.size();
-			
+		
+		MFDRWithParameter mfdr_p = new MFDRWithParameter();
+		MFDRObject q_mfdr_object = mfdr_p.getResult(query, NoC);
+		logger.info("TTTTT:" + q_mfdr_object.NoC_t());
 		/* Prepare Residual form query*/
 		LinkedList<LinkedList<PLAData>> q_trend=  new LinkedList<LinkedList<PLAData>>();
 		LinkedList<TimeSeries> q_residualfull=  new LinkedList<TimeSeries>();
@@ -147,7 +152,7 @@ public class MFDR extends DimensionalityReduction {
 		/* Compute query distance with the index (i.e. plalist)*/
 		
 		// Extract PLAData and compute PLA distance
-		LinkedList<LinkedList<PLAData>> q_pladata = pla_q.extractIndexingQuery(query, plalist);
+		LinkedList<LinkedList<PLAData>> q_pladata = pla_q.extractIndexingQuery(q_trend, plalist, q_mfdr_object.NoC_t());
 		double[] dist_pla = pla_q.computeIndexingQuery(q_pladata, plalist, size, distance);
 		
 		// Extract DFTData and compute DFT distance
@@ -188,11 +193,10 @@ public class MFDR extends DimensionalityReduction {
 		double[] dist_mfdr = new double[mfdrlist.size()];
 		for(int i = 0 ; i < mfdrlist.size() ; i++){
 			dist_mfdr[i] = Math.sqrt(Math.pow(dist_pla[i], 2)
-					+ Math.pow(dist_dft[i], 2) + dist_cross[i] + size* noiseenergy[i]);
+					+ Math.pow(dist_dft[i], 2) + dist_cross[i] + size * noiseenergy[i]);
 		}
 		return dist_mfdr;
 	}
-	
 	
 	/**
 	 * Default setting does not extract noises.
@@ -400,8 +404,8 @@ public class MFDR extends DimensionalityReduction {
 		double total1 = 0;
 		double total2 = 0;
 		// get LCM plaData lists
-		int lcm = lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
-		LinkedList<LinkedList<PLAData>> trends = getLCMPLADataList(
+		int lcm = pla.lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
+		LinkedList<LinkedList<PLAData>> trends = pla.getLCMPLADataList(
 				mfdrdata1.trends(), mfdrdata2.trends(), lcm, tslength);
 		for (int j = 0; j < lcm; j++) {
 			double a3 = trends.get(0).get(j).a1() - trends.get(1).get(j).a1();
@@ -434,8 +438,8 @@ public class MFDR extends DimensionalityReduction {
 		double ts1_total = 0;
 		double ts2_total = 0;
 		// get LCM plaData lists
-		int lcm = lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
-		LinkedList<LinkedList<PLAData>> trends = getLCMPLADataList(mfdrdata1.trends(), mfdrdata2.trends(), lcm, tslength);
+		int lcm = pla.lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
+		LinkedList<LinkedList<PLAData>> trends = pla.getLCMPLADataList(mfdrdata1.trends(), mfdrdata2.trends(), lcm, tslength);
 		// Iteratino
 		for (int j = 0; j < lcm; j++) {
 			double a3 = trends.get(0).get(j).a1() - trends.get(1).get(j).a1();
@@ -488,42 +492,6 @@ public class MFDR extends DimensionalityReduction {
 	 * <li> trendlist.get(0) = LCM list from trend1.
 	 * <li> trendlist.get(0) = LCM list from trend2.
 	 */
-	public LinkedList<LinkedList<PLAData>> getLCMPLADataList(
-			LinkedList<PLAData> trend1, LinkedList<PLAData> trend2, int lcm,
-			double tslength) {
-		LinkedList<LinkedList<PLAData>> list = new LinkedList<LinkedList<PLAData>>();
-		int division1 = lcm / trend1.size();
-		int division2 = lcm / trend2.size();
-		double windowsize = tslength / lcm;
-		LinkedList<PLAData> trend_lcm_1 = new LinkedList<PLAData>();
-		LinkedList<PLAData> trend_lcm_2 = new LinkedList<PLAData>();
-		for (int i = 0; i < lcm; i++) {
-			double time = trend1.get(0).time() + windowsize * i;
-			trend_lcm_1.add(new PLAData(time, trend1.get(i / division1).a0()
-					+ trend1.get(i / division1).a1() * (i % division1)
-					* windowsize, trend1.get(i / division1).a1()));
-			trend_lcm_2.add(new PLAData(time, trend2.get(i / division2).a0()
-					+ trend2.get(i / division2).a1() * (i % division2)
-					* windowsize, trend2.get(i / division2).a1()));
-		}
-		list.add(trend_lcm_1);
-		list.add(trend_lcm_2);
-		return list;
-	}
-
-	public int gcd(int a, int b) {
-		while (b > 0) {
-			int temp = b;
-			b = a % b; // % is remainder
-			a = temp;
-		}
-		return a;
-	}
-
-	public int lcm(int a, int b) {
-		return a * (b / gcd(a, b));
-	}
-
 	
 	
 	/* ************************************************* */
@@ -626,8 +594,8 @@ public class MFDR extends DimensionalityReduction {
 		double e1 = mfdrdata1.noiseEnergyDensity();
 		double e2 = mfdrdata2.noiseEnergyDensity();
 		// Calculate distances of low frequency pla and high frequency dwt
-		int lcm = lcm(trend1.size(), trend2.size());
-		LinkedList<LinkedList<PLAData>> lcmtrends = getLCMPLADataList(trend1,
+		int lcm = pla.lcm(trend1.size(), trend2.size());
+		LinkedList<LinkedList<PLAData>> lcmtrends = pla.getLCMPLADataList(trend1,
 				trend2, lcm, size);
 		// print(lcmtrends.get(0));
 		// print(lcmtrends.get(1));
@@ -639,13 +607,13 @@ public class MFDR extends DimensionalityReduction {
 		return new MFDRDistanceDetails(dist_trend, dist_seasonal, dist_noise);
 	}
 
-	private void print(LinkedList<PLAData> list) {
-		for (int i = 0; i < list.size(); i++) {
-			System.out.print("[" + i + "]" + " T:" + list.get(i).time()
-					+ " A0:" + list.get(i).a0() + " A1:" + list.get(i).a1());
-		}
-		System.out.println();
-	}
+//	private void print(LinkedList<PLAData> list) {
+//		for (int i = 0; i < list.size(); i++) {
+//			System.out.print("[" + i + "]" + " T:" + list.get(i).time()
+//					+ " A0:" + list.get(i).a0() + " A1:" + list.get(i).a1());
+//		}
+//		System.out.println();
+//	}
 
 	
 }

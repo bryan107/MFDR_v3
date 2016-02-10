@@ -26,8 +26,12 @@ public class PAA extends DimensionalityReduction {
 	
 	@Override
 	public TimeSeries getFullResolutionDR(TimeSeries ts) {
-		TimeSeries paafull = new TimeSeries();
 		LinkedList<PAAData> paa = getDR(ts);
+		return getFullResolutionDR(paa, ts);
+	}
+
+	public TimeSeries getFullResolutionDR(LinkedList<PAAData> paa, TimeSeries ts) {
+		TimeSeries paafull = new TimeSeries();
 		// set it_paa
 		PAAData data_paa_front, data_paa_rare;
 		Iterator<PAAData> it_paa = paa.iterator();
@@ -74,27 +78,29 @@ public class PAA extends DimensionalityReduction {
 	public LinkedList<PAAData> getDR(TimeSeries ts) {
 		LinkedList<PAAData> paa = new LinkedList<PAAData>();
 		int PAAwindowsize = ts.size()/NoC;
-		boolean isfirstround = true;
+		if(PAAwindowsize == 0)
+			PAAwindowsize = 1;
 		Data data = new Data(0, 0);
 		Iterator<Data> it = ts.iterator();
 		while (it.hasNext()) {
 			// If first round, initiate data.
-			if(isfirstround){
-				 data = (Data) it.next();
-				isfirstround = false;
-			}
+			
 			double sum = 0;
 			int count = 0;
-			double init_time = data.time();
+			double init_time = 0;
+			boolean isfirstround = true;
 			while(count < PAAwindowsize){
+				data = it.next();
+				if(isfirstround){
+					init_time = data.time();
+					isfirstround = false;
+				}
 				// Add data to temp
 				sum += data.value();
 				count++;
 				// If no next item.
 				if(!it.hasNext())
 					break;
-				// iterate the next item.
-				data = it.next();
 			}
 			try {
 				// Add PAA result to dr

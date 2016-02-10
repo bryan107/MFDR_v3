@@ -101,9 +101,9 @@ public class MFDR_LB extends MFDR {
 	// TODO To test this function.
 	private double computeCompensation(MFDR_LB_Data mfdrdata1, MFDR_LB_Data mfdrdata2,
 			int size){
-		int lcm = lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
+		int lcm = pla.lcm(mfdrdata1.trends().size(), mfdrdata2.trends().size());
 		double windowlength = size / lcm; 
-		LinkedList<LinkedList<PLAData>> lcmtrend = getLCMPLADataList(mfdrdata1.trends(), mfdrdata2.trends(), lcm, size);
+		LinkedList<LinkedList<PLAData>> lcmtrend = pla.getLCMPLADataList(mfdrdata1.trends(), mfdrdata2.trends(), lcm, size);
 		
 		/* Get T (average of trend1 - trend2) */
 		double t = 0;

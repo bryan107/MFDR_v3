@@ -14,18 +14,21 @@ public class BruteForceNoCCalculator implements NoCCalculator {
 	
 	@Override
 	public MFDRObject getMFDRNoCs(TimeSeries ts, int NoC, double lowestperiod) {
+		MFDRWaveData data, candidatedata = null;
 		int[] candidateNoCs = {0 , NoC};
 		MFDR mfdr = new MFDR(candidateNoCs[0], candidateNoCs[1]);
 		TimeSeries residual;
 		long startTime = System.nanoTime();
 		if(lowestperiod == 0){
-			residual = DataListCalculator.getInstance().getDifference(ts, mfdr.getFullResolutionDR(ts));
+			candidatedata = mfdr.getDR(ts);
+			residual = DataListCalculator.getInstance().getDifference(ts, mfdr.getFullResolutionDR(candidatedata,ts));
 		} else{
-			residual = DataListCalculator.getInstance().getDifference(ts, mfdr.getFullResolutionDR(ts, lowestperiod));
+			candidatedata = mfdr.getDR(ts,lowestperiod);
+			residual = DataListCalculator.getInstance().getDifference(ts, mfdr.getFullResolutionDR(candidatedata,ts));
 		}
 		double candidateError = residual.energyDensity();
 		// Iterate through difference combination
-		MFDRWaveData data, candidatedata = null;
+		
 		for(int NoC_t = 1 ; NoC_t <=NoC ; NoC_t++){
 			int NoC_s = NoC - NoC_t;
 			mfdr.updateParameters(NoC_t, NoC_s);

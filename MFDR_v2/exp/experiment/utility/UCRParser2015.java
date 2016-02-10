@@ -121,6 +121,32 @@ public class UCRParser2015 implements UCRParser {
 		list.addAll(getUCRDataList());
 		return list;
 	}
+	
+	/**
+	 * Return both TRAIN data with UCRData structure
+	 * @param address
+	 * @param filename
+	 * @return LinkedList<UCRData>
+	 */
+	public LinkedList<UCRData> getUCRDataListTrain(String address, String filename) {
+		LinkedList<UCRData> list = new LinkedList<UCRData>();
+		fagent.updatereadingpath(address + filename + "\\" + filename + "_TRAIN");
+		list = getUCRDataList();
+		return list;
+	}
+	
+	/**
+	 * Return both TRAIN and TEST data with UCRData structure
+	 * @param address
+	 * @param filename
+	 * @return LinkedList<UCRData>
+	 */
+	public LinkedList<UCRData> getUCRDataListTest(String address, String filename) {
+		LinkedList<UCRData> list = new LinkedList<UCRData>();
+		fagent.updatereadingpath(address + filename + "\\" + filename + "_TEST");
+		list = getUCRDataList();
+		return list;
+	}
 
 	@Override
 	public boolean checkFileNameCorrectness(String squence) {

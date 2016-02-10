@@ -12,6 +12,6 @@ public class ExperimentContainer4 extends TestCase {
 	
 	public void test(){
 		RepresentationErrorParameterCore core = new RepresentationErrorParameterCore();
-		core.run(readaddress, writeaddress, listaddress, 2, 2, 10, 0);
+		core.run(readaddress, writeaddress, listaddress, 3, 2, 11, 0);
 	}
 }

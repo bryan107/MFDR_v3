@@ -2,13 +2,9 @@ package mfdr.dimensionality.reduction;
 
 import java.util.LinkedList;
 
-import org.jtransforms.fft.DoubleFFT_1D;
 
-import mfdr.core.HeuristicNoCCalculator;
 import mfdr.core.MFDRObject;
 import mfdr.core.MFDRWithParameter;
-import mfdr.core.back.MFDRParameters;
-import mfdr.datastructure.Data;
 import mfdr.datastructure.TimeSeries;
 import mfdr.dimensionality.datastructure.DFTData;
 import mfdr.dimensionality.datastructure.MFDRWaveData;
@@ -16,8 +12,6 @@ import mfdr.dimensionality.datastructure.PLAData;
 import mfdr.distance.Distance;
 import mfdr.distance.EuclideanDistance;
 import mfdr.file.FileAccessAgent;
-import mfdr.math.emd.utility.DataListCalculator;
-import mfdr.utility.DataListOperator;
 import mfdr.utility.Print;
 import experiment.utility.UCRParser;
 import experiment.utility.UCRParser2015;
@@ -27,10 +21,10 @@ public class TestMFDR_LB extends TestCase {
 
 	private final String readaddress = "C:\\TEST\\MFDR\\UCR_TS_Archive_2015\\";
 	private final String listaddress = "C:\\TEST\\MFDR\\UCR_TS_Archive_2015\\test_list.txt";
-	private int NoC_t = 7, NoC_s = 1;
+	private int NoC_t = 6, NoC_s = 1;
 	private double LB_num_dev = 3;
 	private int run = 30;
-	
+	private int TSID = 0; 
 	
 	public void testIndexQuery() {
 		Distance distance = new EuclideanDistance();
@@ -48,7 +42,7 @@ public class TestMFDR_LB extends TestCase {
 				readaddress, filenamelist.get(0));
 
 		LinkedList<TimeSeries> tsset = new LinkedList<TimeSeries>();
-		for(int i = 0 ; i < 20 ; i++){
+		for(int i = 0 ; i < 50 ; i++){
 			tsset.add(tssetall.get(i));
 		}
 		LinkedList<TimeSeries> tsquery = parser.getTimeSeriesListTest(fagent, readaddress, filenamelist.get(0));
@@ -69,25 +63,25 @@ public class TestMFDR_LB extends TestCase {
 		LinkedList<MFDRWaveData> mfdrlist = new LinkedList<MFDRWaveData>();
 		for (TimeSeries ts : tsset) {
 			MFDRObject ob = mfdr_p.getResult(ts, NoC_t+NoC_s);
-			mfdrlist.add(mfdr_p.getResult(ts, NoC_t+NoC_s).data());
+			mfdrlist.add(ob.data());
 		}
 		
 		
 		
 		// Compute Distance
-		double[] dft_dist = dft.computeIndexingQuery(tsquery.get(0), dftlist,distance);
-		double[] pla_dist = pla.computeIndexingQuery(tsquery.get(0), plalist, distance);
-		double[] mfdr_dist = mfdr.computeIndexingQuery(tsquery.get(0), mfdrlist, distance, NoC_t+NoC_s, 0);
-		
+		double[] dft_dist = dft.computeIndexingQuery(tsquery.get(TSID), dftlist,distance);
+		double[] pla_dist = pla.computeIndexingQuery(tsquery.get(TSID), plalist, distance,NoC_t+NoC_s);
+		double[] mfdr_dist = mfdr.computeIndexingQuery(tsquery.get(TSID), mfdrlist, distance, NoC_t+NoC_s, 0);
+		double[] dft_NLB_dist = new double[dftlist.size()];
 		double[] mfdr_NLB_dist = new double[mfdrlist.size()];
-		MFDRObject mfdrdata_NLB = mfdr_p.getResult(tsquery.get(0), NoC_t+NoC_s);
+		MFDRObject mfdrdata_NLB = mfdr_p.getResult(tsquery.get(TSID), NoC_t+NoC_s);
 		for(int i = 0 ; i < mfdrlist.size() ; i++){
-			mfdr_NLB_dist[i] = mfdr.getDistance(mfdrdata_NLB.data(), mfdrlist.get(i), tsquery.get(i).size(), distance);
+			mfdr_NLB_dist[i] = mfdr.getDistance(mfdrdata_NLB.data(), mfdrlist.get(i), tsquery.get(TSID).size(), distance);
 		}
 		
 		
-		DFTData querydata = dft.getDR(tsquery.get(0));
-		DFTData querylbdata = dftlb.getDR(tsquery.get(0));
+		DFTData querydata = dft.getDR(tsquery.get(TSID));
+		DFTData querylbdata = dftlb.getDR(tsquery.get(TSID));
 		
 		double dft_violation = 0, dft_NLB_violation = 0, dft_LB_violation = 0, pla_violation = 0, mfdr_violation = 0, mfdr_NLB_violation = 0;
 		double err_dft = 0, err_NLB_dft = 0, err_LB_dft = 0 , err_pla = 0, err_mfdr = 0, err_mfdr_NLB = 0;
@@ -95,34 +89,34 @@ public class TestMFDR_LB extends TestCase {
 		double[] act_dist = new double[dft_dist.length];
 		for (int i = 0; i < dft_dist.length; i++) {
 			// Compute
-			double dft_NLB_dist = dft.getDistance(querydata, dftlist.get(i),
-					distance, tsquery.get(0).size());
+			dft_NLB_dist[i] = dft.getDistance(querydata, dftlist.get(i),
+					distance, tsquery.get(TSID).size());
 			double dft_LB_dist = dft.getDistance(querylbdata, dftlblist.get(i),
-					distance, tsquery.get(0).size());
-			act_dist[i] = distance.calDistance(tsquery.get(0),
+					distance, tsquery.get(TSID).size());
+			act_dist[i] = distance.calDistance(tsquery.get(TSID),
 					tsset.get(i), tsset.get(i));
 			// Store reuslts
-			err_dft += dft_dist[i] / act_dist[i];
+			err_dft += Math.abs(dft_dist[i]-act_dist[i]) / act_dist[i];
 			if (dft_dist[i] > act_dist[i])
 				dft_violation++;
 
-			err_pla += pla_dist[i] / act_dist[i];
+			err_pla += Math.abs(pla_dist[i]-act_dist[i]) / act_dist[i];
 			if (pla_dist[i] > act_dist[i])
 				pla_violation++;
 			
-			err_mfdr += mfdr_dist[i] / act_dist[i];
+			err_mfdr += Math.abs(mfdr_dist[i]-act_dist[i]) / act_dist[i];
 			if (mfdr_dist[i] > act_dist[i])
 				mfdr_violation++;
 			
-			err_mfdr_NLB += mfdr_NLB_dist[i] / act_dist[i];
+			err_mfdr_NLB += Math.abs(mfdr_NLB_dist[i]-act_dist[i]) / act_dist[i];
 			if (mfdr_NLB_dist[i] > act_dist[i])
 				mfdr_NLB_violation++;
 			
-			err_NLB_dft += dft_NLB_dist / act_dist[i];
-			if (dft_NLB_dist > act_dist[i])
+			err_NLB_dft += Math.abs(dft_NLB_dist[i]-act_dist[i]) / act_dist[i];
+			if (dft_NLB_dist[i] > act_dist[i])
 				dft_NLB_violation++;
 
-			err_LB_dft += dft_LB_dist / act_dist[i];
+			err_LB_dft += Math.abs(dft_LB_dist-act_dist[i]) / act_dist[i];
 			if (dft_LB_dist > act_dist[i])
 				dft_LB_violation++;
 		}
@@ -132,16 +126,18 @@ public class TestMFDR_LB extends TestCase {
 		System.out.println("[MFDR_NLB] V:" + mfdr_NLB_violation / dftlist.size()	+ " ERR:" + err_mfdr_NLB/ dftlist.size());
 		System.out.println("[DFT_NLB] V:" + dft_NLB_violation / dftlist.size() + " ERR:" + err_NLB_dft/ dftlist.size());
 		System.out.println("[DFT_LB]  V:" + dft_LB_violation / dftlist.size() + " ERR:" + err_LB_dft/ dftlist.size());
-		System.out.print("Actual Dist: ");
+		System.out.print("Actual Dist    : ");
 		Print.getInstance().printArray(act_dist, act_dist.length);
-		System.out.print("DFT Dist   : ");
+		System.out.print("DFT Dist       : ");
 		Print.getInstance().printArray(dft_dist, dft_dist.length);
-		System.out.print("PLA Dist   : ");
+		System.out.print("PLA Dist       : ");
 		Print.getInstance().printArray(pla_dist, pla_dist.length);
-		System.out.print("MFDR Dist  : ");
+		System.out.print("MFDR Dist      : ");
 		Print.getInstance().printArray(mfdr_dist, mfdr_dist.length);
 		System.out.print("MFDR_NLB Dist  : ");
 		Print.getInstance().printArray(mfdr_NLB_dist, mfdr_NLB_dist.length);
+		System.out.print("DFT_NLB Dist   : ");
+		Print.getInstance().printArray(dft_NLB_dist, dft_NLB_dist.length);
 	}
 
 	// public void testFFT(){

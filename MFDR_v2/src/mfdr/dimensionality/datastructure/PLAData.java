@@ -43,4 +43,8 @@ public class PLAData {
 		return a0 + a1*x;
 	}
 	
+	public PLAData self(){
+		return this;
+	}
+	
 }
