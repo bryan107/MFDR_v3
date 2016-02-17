@@ -29,7 +29,7 @@ public class PAA extends DimensionalityReduction {
 		LinkedList<PAAData> paa = getDR(ts);
 		return getFullResolutionDR(paa, ts);
 	}
-
+// TODO BUG to FIX
 	public TimeSeries getFullResolutionDR(LinkedList<PAAData> paa, TimeSeries ts) {
 		TimeSeries paafull = new TimeSeries();
 		// set it_paa

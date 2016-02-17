@@ -51,14 +51,14 @@ public class RepresentationErrorParameterCore implements ExperimentCore {
 				listaddress);
 
 		/* Warm up MFDR with Heuristic Solution */
-		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
-		runMFDRMethod(readaddress, writeaddress + "WarmUpDump\\", 2, 2, 3,
-				mfdr_p, fagent, filenamelist);
+//		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
+//		runMFDRMethod(readaddress, writeaddress + "WarmUpDump\\", 2, 2, 3,
+//				mfdr_p, fagent, filenamelist);
 
 		/* Run MFDR with Heuristic Solution */
-		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
-		runMFDRMethod(readaddress, writeaddress, NoC_Start, NoC_Interval,
-				NoC_End, mfdr_p, fagent, filenamelist);
+//		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
+//		runMFDRMethod(readaddress, writeaddress, NoC_Start, NoC_Interval,
+//				NoC_End, mfdr_p, fagent, filenamelist);
 
 		/* Run MFDR with BruteForce Solution */
 //		mfdr_p.updateNoCCalculator(new BruteForceNoCCalculator());
@@ -70,7 +70,7 @@ public class RepresentationErrorParameterCore implements ExperimentCore {
 //		runComparedMethod(readaddress, writeaddress, NoC_Start *2 , NoC_Interval *2, NoC_End*2, new PAA(2), fagent, filenamelist);
 		
 		/* Run PLA */
-		runComparedMethod(readaddress, writeaddress, NoC_Start, NoC_Interval, NoC_End, new PLA(2), fagent, filenamelist);
+//		runComparedMethod(readaddress, writeaddress, NoC_Start, NoC_Interval, NoC_End, new PLA(2), fagent, filenamelist);
 		
 		/* Run DFT */
 //		runComparedMethod(readaddress, writeaddress, NoC_Start, NoC_Interval, NoC_End, new DFT(2), fagent, filenamelist);
@@ -164,8 +164,11 @@ public class RepresentationErrorParameterCore implements ExperimentCore {
 					long startTime = System.nanoTime();
 					DR.getDR(tsset.get(j), NoC);
 					long endTime = System.nanoTime();
-					err[j] = DataListCalculator.getInstance().getDifference(DR.getFullResolutionDR(tsset.get(j), NoC),
-							tsset.get(j)).energyDensity();
+					TimeSeries drfull = DR.getFullResolutionDR(tsset.get(j), NoC);
+					err[j] = DataListCalculator.getInstance().getDifference(drfull,	tsset.get(j)).energyDensity();
+					if(err[j] > 1){
+						System.out.println("TEST:" + err[j] );
+					}
 					time[j] = endTime - startTime;
 
 					/* ----- Print Counter Start ------- */

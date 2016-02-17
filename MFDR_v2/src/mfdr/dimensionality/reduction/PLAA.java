@@ -82,8 +82,14 @@ public class PLAA extends DimensionalityReduction {
 			return plaa;
 		}
 		// n = window size
-		double n = ts.size() / NoC;
+		int n = ts.size() / NoC;
+		if((double)ts.size() % NoC != 0)
+			n++;
 		LinkedList<TimeSeries> tslist = DataListOperator.getInstance().linkedListDivision(ts, n);
+//		if (tslist.size() > NoC){
+//			tslist.get(NoC-1).addAll(tslist.get(NoC));
+//			tslist.removeLast();
+//		}
 		for (TimeSeries subts : tslist) {
 //			if (i + n < ts.size()) {
 //				subts = (TimeSeries) ts.subList(i, (int) (i + n));

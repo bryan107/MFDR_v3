@@ -54,21 +54,21 @@ public class ClosenessOfDistanceCore implements ExperimentCore {
 				listaddress);
 
 		/* Warm up MFDR with Heuristic Solution */
-		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
-		String testlistaddress = "C:\\TEST\\MFDR\\UCR_TS_Archive_2015\\test_list.txt";
-		runMFDRMethod(readaddress, writeaddress + "WarmUpDump\\", 2, 2, 3,
-				mfdr_p, fagent, parser.getFileNameList(fagent,
-						testlistaddress));
+//		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
+//		String testlistaddress = "C:\\TEST\\MFDR\\UCR_TS_Archive_2015\\test_list.txt";
+//		runMFDRMethod(readaddress, writeaddress + "WarmUpDump\\", 2, 2, 3,
+//				mfdr_p, fagent, parser.getFileNameList(fagent,
+//						testlistaddress));
 
 		/* Run MFDR with Heuristic Solution */
-		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
-		runMFDRMethod(readaddress, writeaddress, NoC_Start, NoC_Interval,
-				NoC_End, mfdr_p, fagent, filenamelist);
+//		mfdr_p.updateNoCCalculator(new HeuristicNoCCalculator());
+//		runMFDRMethod(readaddress, writeaddress, NoC_Start, NoC_Interval,
+//				NoC_End, mfdr_p, fagent, filenamelist);
 
 		/* Run MFDR with BruteForce Solution */
-		mfdr_p.updateNoCCalculator(new BruteForceNoCCalculator());
-		runMFDRMethod(readaddress, writeaddress, NoC_Start, NoC_Interval,
-				NoC_End, mfdr_p, fagent, filenamelist);
+//		mfdr_p.updateNoCCalculator(new BruteForceNoCCalculator());
+//		runMFDRMethod(readaddress, writeaddress, NoC_Start, NoC_Interval,
+//				NoC_End, mfdr_p, fagent, filenamelist);
 
 //		/* NoC setting i.e. new PAA(2) is just temporary and is replaced in the run method. */
 //		/* Run PAA which can host two times more NoC then other solution for fair comparison. */
